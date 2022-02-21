@@ -23,15 +23,16 @@ var buffer, views, root;
   function _makeInstance(panSide) {
     var bed = new Bed(panSide.element, element => new CodeMirror(element, { value: buffer || "", mode: panSide.data }))
       , r = [panSide, bed];
-    if (panSide.data) CodeMirror.autoLoadMode(bed.editor, (CodeMirror.findModeByMIME(panSide.data)||{}).mode);
+    if (panSide.data && 'pyjama' !== panSide.data) CodeMirror.autoLoadMode(bed.editor, (CodeMirror.findModeByMIME(panSide.data)||{}).mode);
     bed.editor.setOption('theme', _getPref('theme') || "default");
     bed.editor.on('change', _updateBuffer);
-    bed.addMenuSelect(CodeMirror.modeInfo, event => {
+    bed.addMenuSelect(MODES, event => {
       bed.editor.setOption('mode', event.option.mime);
-      CodeMirror.autoLoadMode(bed.editor, event.option.mode);
+      if ('pyjama' !== event.option.mode)
+        CodeMirror.autoLoadMode(bed.editor, event.option.mode);
       bed.addedPanSide.data = event.option.mime;
       _updateViewsPref();
-    }, { name: 'Plain Text', mime: 'text/plain', mode: 'null' }).value = panSide.data && CodeMirror.modeInfo.findIndex(it => it.mime === panSide.data) || -1;
+    }, { name: 'Plain Text', mime: 'text/plain', mode: 'null' }).value = panSide.data && MODES.findIndex(it => it.mime === panSide.data) || -1;
     var sync = true
       , button = bed.addMenuButton(""/*"toggle sync"*/, () => {
           bed.editor[sync ? 'off' : 'on']('change', _updateBuffer);
@@ -102,6 +103,21 @@ var buffer, views, root;
     if (THEMES[_selectTheme.value])
       _updateThemes(_setPref('theme', THEMES[_selectTheme.value]));
   }
+
+  CodeMirror.defineSimpleMode("pyjama", {
+    start: [
+      { regex: /".*?(?:"|$)/, token: 'string' },
+      { regex: /-?\d+/, token: 'number' },
+      { regex: /(?:no|cmp|add|sub|mul|div|mod|pow|sum|prd|max|min|v|s|l|span|copy|pick|stow|find|size|hold|drop|does)_/, token: 'keyword' },
+      { regex: /(?:program|voila)_/, token: 'meta' },
+      { regex: /\(/, indent: true },
+      { regex: /\)/, dedent: true },
+    ]
+  });
+
+  var MODES = Array.from(CodeMirror.modeInfo);
+  MODES.push({ name: 'Pyjama', mime: 'pyjama', mode: 'pyjama' });
+  MODES = MODES.sort((a, b) => a.name.localeCompare(b.name));
 
   CodeMirror.modeURL = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/%N/%N.min.js";
 
