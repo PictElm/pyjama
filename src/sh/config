@@ -1,0 +1,2 @@
+call=sh %s
+check=sh -n %s

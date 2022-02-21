@@ -1,0 +1,40 @@
+does_(
+  s_("   drop LST                SIZE         "),
+  s_("   LST0 = LST[:-2]         SIZ          "),
+  s_("   LST1 = LST[1:-1]        SIZ          "),
+  s_("   LST2 = LST[2:]          SIZ          "),
+  s_("   hold [0]                             "),
+  s_("   hold (                               "),
+  s_("           110 // 2 ** (                "),
+  s_("               LST0*4 + LST1*2 + LST2   "),
+  s_("           )                            "),
+  s_("       ) % 2                            "),
+  s_("   hold [0]                             "),
+
+  s_("TODO: prepare stack"),
+  s_("| initial | size"),
+
+  hold_(v_(0)),
+  hold_(
+    mod_(
+      div_(
+        copy_(v_(110), SIZ),
+        pow_(
+          copy_(v_(2), SIZ),
+
+          add_(
+            add_(
+              LST2,
+              mul_(LST1, copy_(v_(2), SIZ))
+            ),
+            mul_(LST0, copy_(v_(4), SIZ))
+          )
+
+        )
+      ),
+      copy_(v_(2), SIZ)
+    )
+  ),
+  hold_(v_(0)),
+  hold_(v_(SIZE))
+)

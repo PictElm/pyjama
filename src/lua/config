@@ -1,0 +1,2 @@
+call=lua %s
+check=luac -p %s

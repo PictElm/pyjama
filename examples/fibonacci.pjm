@@ -1,0 +1,14 @@
+does(
+	s("can do with the formula"),
+	s("but not sure with lists...")
+)
+
+un = un-2 + un-1
+un = (un-4 + un-3) + (un-3 + un-2)
+   = un-4 + un-3 + un-2
+          + un-3
+
+does(
+	hold(v(1, span(1, n, 1))),
+	hold(add(drop(1), drop(1))) -- for k in range(n)
+)

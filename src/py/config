@@ -1,0 +1,2 @@
+call=py %s
+check=python -c "import ast; ast.parse(open(r'%s').read())"

@@ -1,0 +1,14 @@
+does_(
+  hold_(size_(hold_(s_("Hello, world!")))),
+  s_("| input | size"),
+
+  hold_(copy_(drop_(0, 1), v_(2))),
+  s_("| input | size | size"),
+
+  hold_(size_(hold_(
+    pick_(
+      drop_(1, l_(drop_(0, 1))),
+      span_(l_(sub_(drop_(0, 1), v_(1))), 0-1, 0-1))
+    )
+  )))
+)

@@ -1,0 +1,2 @@
+call=php -f %s
+check=php -l %s

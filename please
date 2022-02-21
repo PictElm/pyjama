@@ -1,0 +1,248 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+SRC='src'
+TEST=('test', 'scaffold.txt')
+TEMPLATE=('build', 'template')
+RESULT=('build', 'result')
+TEMP=('build', '_temp')
+
+def default():
+    _print("for a list of command use `python please _help`")
+    _print("for help about a command use `python please _help,command`")
+
+#--- building
+
+def build():
+    """ Assemble everything (get_list) following the template into result """
+    with open(_path(*TEMPLATE), 'r') as template:
+        out = template.read()
+        for lang in get_list():
+            if not "%"+lang+"%" in out:
+                _print(
+                    "["+lang+"]",
+                    "was not expected (no marker in the template)"
+                )
+                continue
+
+            try:
+                with open(_path(SRC, lang, 'part.'+lang), 'r') as it:
+                    out = out.replace("%"+lang+"%", it.read(), 1)
+            except FileNotFoundError:
+                _print(
+                    "["+lang+"]:",
+                    "does not present an accessible `part.xyz` file"
+                )
+
+    with open(_path(*RESULT), 'wb') as result:
+        result.write(out.encode())
+
+    return _path(*RESULT)
+
+#--- testing
+
+def test_int(*these):
+    """ Integrated test for the given languages (or all if none specified) """
+    if not these: return test_int(*get_list())
+
+    test_list = get_test()
+    test_fail = []
+
+    with open(_path(*TEMP), 'wb') as scrap:
+        with open(build(), 'r') as it:
+            text = it.read()
+            if not "%heretest%" in text:
+                gone_wrong = "missing %heretest% in result", "`"+it.name+"`"
+                _print(gone_wrong)
+                return gone_wrong
+
+        def _runner(lang, code):
+            import re
+            scrap.seek(0)
+            scrap.write(re.sub(".*%heretest%.*", code+",", text, 1).encode())
+            scrap.truncate()
+            scrap.flush()
+            try:
+                return run_lang(_path(*TEMP), lang, True)
+            except Exception:
+                _print(
+                    "["+lang+"]:",
+                    "call failed for", "`"+code+"`"
+                )
+
+        for lang in these:
+            _print("testing:", lang)
+
+            for test in test_list:
+                src, res = test
+                w_src = _runner(lang, src)
+                w_res = _runner(lang, res)
+                _print("\t(", src, ";", res, ") -->")
+                _print("\t\t", repr(w_src))
+                _print("\t\t", repr(w_res))
+
+                if not (w_src and w_res):
+                    _print(
+                        "["+lang+"]:",
+                        "unexpected failure"
+                    )
+                    which = w_res and src or w_res and res or "(both empty)"
+                    test_fail.append("["+lang+"]: '"+which+"'")
+                elif w_src != w_res:
+                    _print(
+                        "["+lang+"]:",
+                        "expected", "`"+w_res+"`", "got", "`"+w_src+"`"
+                    )
+                    test_fail.append("["+lang+"]: '"+src+"'")
+
+    _rm(_path(*TEMP))
+    return "\n".join(test_fail) or "all passed successfully"
+
+def test_iso(*these):
+    """ Isolated test for the given languages (or all if none specified) """
+    if not these: return test_iso(*get_list())
+
+    test_list = get_test()
+    test_fail = []
+
+    with open(_path(*TEMP), 'wb') as scrap:
+        def _runner(lang, text, code):
+            import re
+            scrap.seek(0)
+            scrap.write(re.sub(".*%heretest%.*", code+",", text, 1).encode())
+            scrap.truncate()
+            scrap.flush()
+            try:
+                return run_lang(_path(*TEMP), lang)
+            except Exception:
+                _print(
+                    "["+lang+"]:",
+                    "call failed for", "`"+code+"`"
+                )
+
+        for lang in these:
+            _print("testing:", lang)
+
+            try:
+                with open(_path(SRC, lang, 'main.'+lang), 'r') as it:
+                    text = it.read()
+                    if not "%heretest" in text:
+                        _print(
+                            "["+lang+"]:",
+                            "missing marker `%heretest%` in `main.xyz` file"
+                        )
+                        continue
+            except FileNotFoundError:
+                _print(
+                    "["+lang+"]:",
+                    "does not present an accessible `main.xyz` file"
+                )
+                continue
+
+            for test in test_list:
+                src, res = test
+                w_src = _runner(lang, text, src)
+                w_res = _runner(lang, text, res)
+                _print("\t(", src, ";", res, ") -->")
+                _print("\t\t", repr(w_src))
+                _print("\t\t", repr(w_res))
+
+                if None in [w_src, w_res]:
+                    _print(
+                        "["+lang+"]:",
+                        "unexpected failure"
+                    )
+                    test_fail.append("["+lang+"]: '"+(w_res and src or res)+"'")
+                elif w_src != w_res:
+                    _print(
+                        "["+lang+"]:",
+                        "expected", "`"+w_res+"`", "got", "`"+w_src+"`"
+                    )
+                    test_fail.append("["+lang+"]: '"+src+"'")
+
+    _rm(_path(*TEMP))
+    return "\n".join(test_fail) or "all passed successfully"
+
+def check_syntax(*file_these):
+    """ Syntax check for the given languages (or all if none specified) """
+    file = file_these[0] if len(file_these) else _path(*RESULT)
+    these = file_these[1:]
+    if not these: return check_syntax(file, *get_list())
+
+    owd = _cwd()
+    source = file
+    for lang in these:
+        copy = source + "." + lang
+        mayfolder_file = _cp(source, copy).rsplit(os.sep, 1)
+        if 2 == len(mayfolder_file):
+            folder, file = mayfolder_file
+        else:
+            folder = "."
+            file,= mayfolder_file
+        conf = get_conf(lang)
+        _cd(folder)
+        _print("["+lang+"]: (cwd:", folder+")", end=" ")
+        _system_verb(conf['check'].replace("%s", file))
+        _print()
+        _cd(owd)
+        _rm(copy)
+
+#--- utils
+
+def get_list():
+    """ The list of included interpreters (under src/) """
+    return [it for it in _ls(_path(SRC)) if not it.endswith('_no')]
+
+def get_conf(lang):
+    """ The config of the specified `lang` """
+    get_conf._cache = getattr(get_conf, '_cache', {})
+    if lang in get_conf._cache: return get_conf._cache[lang]
+
+    with open(_path(SRC, lang, 'config'), 'r') as file:
+        get_conf._cache[lang] = dict([
+            [it.strip() for it in line.split("=", 1)] # remove blanks
+            for line in file
+            if line.strip() and not line.strip().startswith("#")
+        ])
+        return get_conf._cache[lang]
+
+def get_test():
+    """ The list of test as pair of `(input, output)` """
+    with open(_path(*TEST), 'r') as file:
+        return [
+            tuple([it.strip() for it in line.split("=", 1)]) # remove blanks
+            for line in file
+            if line.strip() and not line.strip().startswith("#")
+        ]
+
+def run_lang(file, lang, *may_fail):
+    config = get_conf(lang)
+    copy = file + "." + lang
+    mayfolder_file = _cp(file, copy).rsplit(os.sep, 1)
+    import subprocess
+    try:
+        if 2 == len(mayfolder_file):
+            folder, file = mayfolder_file
+        else:
+            folder = "."
+            file,= mayfolder_file
+        r = subprocess.check_output(
+            config['call'].replace("%s", file),
+            cwd=folder
+        )
+        _rm(copy)
+        return r.decode().strip()
+    except subprocess.CalledProcessError as err:
+        _rm(copy)
+        if len(may_fail): return err.output.decode().strip()
+        raise Exception("call failed (exit " + str(err.returncode) + ")")
+
+#--- python please do (v1.2)
+try:
+    _print=eval("print")
+except Exception:
+    def _print(*va,**kwa):print(kwa).get('sep'," ").join([str(v)for v in va])+kwa.get('end',"\n"),
+_defined=list(filter(lambda s:not s.startswith('_'),globals().keys()));import os,sys,shutil;_exit=sys.exit;_path=os.path.join;_abspath=os.path.abspath;_relpath=os.path.relpath;_cd=os.chdir;_cwd=os.getcwd;_ls=os.listdir;_walk=os.walk;_mv=os.rename;_rm=os.remove;_cp=shutil.copy2;_isfile=os.path.isfile;_isdir=os.path.isdir;_mkdir=os.makedirs;_exists=os.path.exists;_cptree=lambda src,dst,ignore=lambda path,name:False:(_exists(dst)or not _mkdir(dst))and[_cptree(s,d,ignore)if _isdir(s)and(_exists(d)or not _mkdir(d))else _cp(s,d)for s,d in((_path(src, n),_path(dst, n))for n in _ls(src)if not ignore(src,n))];_rmtree=shutil.rmtree;_system=os.system;_system_verb=lambda command:[_print(command),os.system(command)][1];_nop=lambda:None
+_help=lambda name="":help(globals()[name])if name else _print(*_defined)
+_please=lambda dos:dict([(d[0],globals()[d.pop(0)](*d))for d in[do.split(",")for do in dos]])
+if'__main__'==__name__:_=_please(sys.argv[1:]or['default']);_exit(next(iter(filter(None,_.values())),0)and _)

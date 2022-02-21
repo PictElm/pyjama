@@ -1,0 +1,4 @@
+hold_(no_(no_(span_(l_(hold_(drop_(1))), 1, l_(no_(drop_(1)))))))
+
+
+hold_(no_(no_(span_(l_(hold_(drop_(1))), l_(add_(mul_(drop_(1), v_(100)), v_(1))), 1)))) -- without lazy evaluation weirdness

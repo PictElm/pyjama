@@ -1,0 +1,5 @@
+.vscode/
+.ignore/
+build/*
+!build/template
+#!build/result

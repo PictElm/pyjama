@@ -1,0 +1,2 @@
+call=pwsh -File %s
+check=pwsh -Command 'Get-Command -Syntax %s'

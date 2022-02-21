@@ -1,0 +1,2 @@
+call=node %s
+check=node --check %s
