@@ -36,7 +36,7 @@ But this asks from more from the interpreter language, and to be honest, was
 less interesting... Feel free to take on the challenge though!
   -->
 
-> Admittedly, [that](<!--TODO: This is a 7-language polyglot BF interpreter, making it an 8-language Turing complete polyglot.-->)
+> Admittedly, [that](<!--TODO-->)
 > is a better approach to the same problem (adds 1 language, makes it Turing
 > complete and way simpler)... Anyway, this is not supposed to be an optimal
 > answer, it was interesting to think about...

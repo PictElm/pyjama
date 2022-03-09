@@ -12,7 +12,7 @@ var buffer, views, root;
   function _updateBuffer(editor, event) {
     if ('setValue' === event.origin) return;
     buffer = editor.getValue();
-    views.forEach(([_, it]) => it.editor === editor || it.editor.setValue(buffer));
+    views.forEach(([_, it]) => it.editor === editor || !it.addedSync || it.editor.setValue(buffer));
     if (!_isSaveTimeoutSet)
       _isSaveTimeoutSet = setTimeout(() => {
         _setPref('buffer', buffer);
@@ -33,12 +33,12 @@ var buffer, views, root;
       bed.addedPanSide.data = event.option.mime;
       _updateViewsPref();
     }, { name: 'Plain Text', mime: 'text/plain', mode: 'null' }).value = panSide.data && MODES.findIndex(it => it.mime === panSide.data) || -1;
-    var sync = true
+    var sync = bed.addedSync = true
       , button = bed.addMenuButton(""/*"toggle sync"*/, () => {
           bed.editor[sync ? 'off' : 'on']('change', _updateBuffer);
           button.setAttribute('class', button.getAttribute('class').replace('bed-icon-sync-'+sync, 'bed-icon-sync-'+!sync));
           button.setAttribute('title', sync ? "Note: this buffer will not be saved!" : "Click to disable buffer synchronization");
-          sync = !sync;
+          if (sync = bed.addedSync = !sync) bed.editor.setValue(buffer);
         }, 'bed-icon-sync-true');
     button.setAttribute('title', "Click to disable buffer synchronization");
     bed.addMenuButton(""/*"split V"*/, () => _splitView(bed, Pan.Horizontal), 'bed-icon-splitv');

@@ -2,18 +2,21 @@ does_(
   hold_(size_(hold_(s_("Hello, world!")))),
   s_("| input | size"),
 
-  s_("TODO: prepare stack"),
-  s_("| input | size | .."),
+  hold_(div_(size_(hold_(copy_(drop_(1, l_(drop_(0, 1)))), 3)), v_(3))),
+  s_("| input*3 | size"),
+
+  s_("   l_(hold_(drop_(0, 1))) -> SIZE   "),
+  s_("   drop_(1, SIZE) -> INPUT          "),
 
   hold_(size_(hold_(
-    add_(
-      INPUT,
+    sub_(
+      drop_(1, l_(hold_(drop_(0, 1)))),
       mul_(
         mul_(
-          no_(cmp_(cmp_(copy_(v_('a'-1), SIZE), INPUT), copy_(v_(1), SIZE))),
-          no_(cmp_(cmp_(INPUT, copy_(v_('z'+1), SIZE)), copy_(v_(1), SIZE)))
+          no_(cmp_(cmp_(copy_(v_(96), l_(hold_(drop_(0, 1)))), drop_(1, l_(hold_(drop_(0, 1))))), copy_(v_(1), l_(hold_(drop_(0, 1)))))),
+          no_(cmp_(cmp_(drop_(1, l_(hold_(drop_(0, 1)))), copy_(v_(123), l_(hold_(drop_(0, 1))))), copy_(v_(1), l_(hold_(drop_(0, 1))))))
         ),
-        copy_(v_('A'-'a'), SIZE)
+        copy_(v_(32), l_(hold_(drop_(0, 1))))
       )
     )
   )))
