@@ -36,7 +36,7 @@ But this asks from more from the interpreter language, and to be honest, was
 less interesting... Feel free to take on the challenge though!
   -->
 
-> Admittedly, [that](<!--TODO-->)
+> Admittedly, [that](TODO:_finish_the_tmp/bf_xyz_interpreters_and_build_all)
 > is a better approach to the same problem (adds 1 language, makes it Turing
 > complete and way simpler)... Anyway, this is not supposed to be an optimal
 > answer, it was interesting to think about...
